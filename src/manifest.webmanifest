@@ -1,0 +1,22 @@
+{
+  "name": "Terjemah Langsung",
+  "short_name": "Terjemah",
+  "description": "Terjemah secara langsung semasa anda menaip atau bercakap.",
+  "lang": "ms",
+  "id": "./",
+  "start_url": "./#/translate",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f5f8",
+  "theme_color": "#f4f5f8",
+  "categories": ["utilities", "education", "travel"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Perbualan", "url": "./#/conversation", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

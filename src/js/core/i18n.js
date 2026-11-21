@@ -1,0 +1,194 @@
+// Interface text in Malay (the default) and English. t('key', { name: value }) fills in {name}.
+// tests/unit/i18n.test.mjs checks that every key used in src/ exists in both languages.
+
+const ms = {
+  appName: 'Terjemah Langsung',
+  tabTranslate: 'Terjemah', tabConversation: 'Perbualan', tabHistory: 'Sejarah', tabSettings: 'Tetapan',
+  offline: 'Luar talian',
+  close: 'Tutup', cancel: 'Batal', clear: 'Kosongkan', delete: 'Padam', deleted: 'Dipadam', send: 'Hantar', show: 'Tunjuk', hide: 'Sembunyi',
+  yes: 'ya', no: 'tidak', auto: 'Auto', all: 'Semua',
+  updateReady: 'Versi baharu sudah dipasang.', reload: 'Muat semula',
+
+  // translate screen
+  translateFrom: 'Terjemah daripada', translateTo: 'Terjemah ke', swap: 'Tukar arah bahasa',
+  autoDetect: 'Kesan bahasa', detected: 'Dikesan: {lang}', recent: 'Terkini', allLanguages: 'Semua bahasa',
+  searchLanguage: 'Cari bahasa', noLanguageFound: 'Tiada bahasa sepadan.',
+  typePlaceholder: 'Taip di sini, atau tekan mikrofon dan bercakap', sourceText: 'Teks asal', translation: 'Terjemahan',
+  translationAppearsHere: 'Terjemahan akan muncul di sini semasa anda menaip atau bercakap.',
+  translating: 'Menterjemah…', tryAgain: 'Cuba lagi',
+  listen: 'Dengar', listenSource: 'Dengar teks asal', copy: 'Salin', share: 'Kongsi', paste: 'Tampal',
+  favourite: 'Kegemaran', unfavourite: 'Buang daripada kegemaran', showLarge: 'Tunjuk besar', tapToClose: 'Ketik di mana-mana untuk tutup',
+  copied: 'Disalin', copyFailed: 'Tidak dapat menyalin.', pasteFailed: 'Tidak dapat menampal: benarkan akses papan keratan.',
+  addedFavourite: 'Ditambah ke kegemaran', removedFavourite: 'Dibuang daripada kegemaran',
+  nothingToSave: 'Tiada terjemahan untuk disimpan lagi.', historyOff: 'Sejarah dimatikan dalam Tetapan.',
+  swapNeedsLanguage: 'Bahasa asal belum dikesan lagi.',
+  tapToSpeak: 'Tekan untuk bercakap', listeningIn: 'Mendengar ({lang})… tekan untuk berhenti',
+  spokenLanguage: 'Bahasa yang anda tuturkan', pickSpokenLanguage: 'Pilih bahasa yang anda tuturkan dahulu.',
+  speakNeedsLanguage: 'Pilih bahasa asal dahulu untuk mendengar.',
+  speakUnsupported: 'Pelayar ini tidak boleh membaca teks dengan suara.',
+  speakFailed: 'Tiada suara {lang} pada peranti ini.',
+  micUnsupported: 'Pengecaman suara tiada dalam pelayar ini. Tekan ikon mikrofon pada papan kekunci untuk imlak, terjemahan tetap muncul secara langsung.',
+
+  // speech recognition errors
+  mic_denied: 'Akses mikrofon ditolak. iPhone: Tetapan › Safari › Mikrofon › Benarkan, kemudian cuba lagi.',
+  mic_nosiri: 'Pengecaman suara dimatikan. iPhone: hidupkan Tetapan › Siri › "Siri & Imlak" (atau Papan Kekunci › Dayakan Imlak).',
+  mic_nomic: 'Mikrofon tidak dijumpai atau sedang digunakan oleh aplikasi lain.',
+  mic_lang: 'Pengecaman suara belum menyokong bahasa ini pada peranti ini. Cuba taip atau guna imlak papan kekunci.',
+  mic_network: 'Pengecaman suara memerlukan internet. Periksa sambungan anda.',
+  mic_nospeech: 'Tiada suara didengar.',
+  mic_unsupported: 'Pengecaman suara tiada dalam pelayar ini.',
+  mic_failed: 'Pengecaman suara gagal. Cuba lagi.',
+
+  // translation errors
+  err_offline: 'Anda di luar talian. Terjemahan baharu memerlukan internet.',
+  err_network: 'Tidak dapat menghubungi perkhidmatan terjemahan.',
+  err_quota: 'Had harian perkhidmatan terjemahan sudah habis.',
+  err_lang: 'Perkhidmatan ini tidak menyokong pasangan bahasa ini.',
+  err_server: 'Perkhidmatan terjemahan sedang bermasalah. Cuba sebentar lagi.',
+  err_aborted: 'Dibatalkan.',
+  errQuotaMyMemory: 'Had percuma MyMemory hari ini (5 000 aksara) sudah habis. Masukkan e-mel dalam Tetapan untuk 50 000 aksara, atau guna kunci Google/Microsoft.',
+  errNoKey: 'Masukkan kunci API {service} dalam Tetapan.',
+  errAuth: 'Kunci API {service} ditolak. Periksa kunci (dan kawasan) dalam Tetapan.',
+
+  // conversation
+  faceToFace: 'Bersemuka', swapLanguages: 'Tukar bahasa', typeInstead: 'Taip', autoSpeak: 'Baca terjemahan secara automatik',
+  clearConversation: 'Kosongkan perbualan', clearConversationQ: 'Padam semua mesej dalam perbualan ini?',
+  yourLanguage: 'Bahasa anda', theirLanguage: 'Bahasa mereka',
+  speakIn: 'Bercakap dalam {lang}', typeIn: 'Taip dalam {lang}',
+  convEmptyA: 'Tekan mikrofon dan bercakap dalam {lang}.', convEmptyB: 'Tekan mikrofon dan bercakap dalam {lang}.',
+
+  // history
+  searchHistory: 'Cari dalam sejarah', favourites: 'Kegemaran', clearHistory: 'Kosongkan sejarah',
+  clearHistoryQ: 'Padam semua sejarah? Kegemaran akan disimpan.', historyCleared: 'Sejarah dikosongkan',
+  noHistory: 'Belum ada terjemahan. Terjemahan anda akan disimpan di sini.', noFavourites: 'Belum ada kegemaran. Tekan bintang pada terjemahan.',
+  noMatches: 'Tiada yang sepadan.', openInTranslator: 'Buka dalam penterjemah', historyOffNote: 'Sejarah dimatikan: terjemahan baharu tidak disimpan.',
+
+  // settings
+  appearance: 'Paparan', interfaceLanguage: 'Bahasa aplikasi', theme: 'Tema', light: 'Cerah', dark: 'Gelap',
+  translationService: 'Perkhidmatan terjemahan', pMyMemory: 'MyMemory',
+  mymemoryNote: 'Percuma tanpa akaun: 5 000 aksara sehari. Dengan e-mel anda: 50 000 aksara sehari.',
+  mmEmail: 'E-mel (pilihan)',
+  googleNote: 'Kualiti terbaik. Perlukan kunci API Google Cloud dengan "Cloud Translation API" diaktifkan (500 000 aksara percuma sebulan). Hadkan kunci kepada laman ini.',
+  microsoftNote: 'Perlukan kunci "Translator" Azure (2 juta aksara percuma sebulan). Isikan kawasan jika sumber anda bukan "global".',
+  apiKey: 'Kunci API', region: 'Kawasan (region)',
+  testService: 'Uji', testing: 'Menguji…', testOk: 'Berfungsi:',
+  keysStayHere: 'Kunci dan e-mel disimpan pada peranti ini sahaja dan dihantar hanya kepada perkhidmatan itu.',
+  speech: 'Suara', speechRate: 'Kelajuan suara',
+  autoSpeakNote: 'Dalam Perbualan, terjemahan dibaca sebaik sahaja seseorang berhenti bercakap.',
+  faceToFaceNote: 'Separuh atas skrin diterbalikkan untuk orang yang duduk bertentangan.',
+  micSupport: 'Pengecaman suara', voiceSupport: 'Bacaan suara',
+  historyTitle: 'Sejarah', saveHistory: 'Simpan sejarah', saveHistoryNote: 'Disimpan pada peranti ini sahaja.',
+  help: 'Bantuan',
+  helpInstallTitle: 'Pasang pada iPhone',
+  helpInstall: 'Buka laman ini dalam Safari, tekan butang Kongsi, kemudian "Tambah ke Skrin Utama". Aplikasi dibuka skrin penuh dan antara mukanya berfungsi tanpa internet.',
+  helpMicTitle: 'Mikrofon tidak berfungsi?',
+  helpMic: 'Pengecaman suara iPhone menggunakan Siri: hidupkan Tetapan › Siri › "Siri & Imlak", dan benarkan mikrofon untuk Safari. Jika masih gagal dalam aplikasi Skrin Utama, buka laman dalam Safari.',
+  helpDictationTitle: 'Cara lain: imlak papan kekunci',
+  helpDictation: 'Ketik kotak teks, kemudian ikon mikrofon pada papan kekunci iPhone. Perkataan anda ditaip dan diterjemah secara langsung.',
+  helpPrivacyTitle: 'Privasi',
+  helpPrivacy: 'Teks yang diterjemah dihantar kepada perkhidmatan terjemahan yang dipilih. Suara anda ditukar kepada teks oleh pelayar (pada iPhone, oleh Apple). Sejarah dan tetapan tidak meninggalkan peranti ini.',
+  wipeAll: 'Padam semua data', wipeAllQ: 'Padam tetapan, kunci API dan sejarah (termasuk kegemaran) daripada peranti ini?', wiped: 'Semua data dipadam',
+};
+
+/** @type {typeof ms} */
+const en = {
+  appName: 'Live Translate',
+  tabTranslate: 'Translate', tabConversation: 'Conversation', tabHistory: 'History', tabSettings: 'Settings',
+  offline: 'Offline',
+  close: 'Close', cancel: 'Cancel', clear: 'Clear', delete: 'Delete', deleted: 'Deleted', send: 'Send', show: 'Show', hide: 'Hide',
+  yes: 'yes', no: 'no', auto: 'Auto', all: 'All',
+  updateReady: 'A new version has been installed.', reload: 'Reload',
+
+  translateFrom: 'Translate from', translateTo: 'Translate to', swap: 'Swap languages',
+  autoDetect: 'Detect language', detected: 'Detected: {lang}', recent: 'Recent', allLanguages: 'All languages',
+  searchLanguage: 'Search languages', noLanguageFound: 'No matching language.',
+  typePlaceholder: 'Type here, or tap the microphone and speak', sourceText: 'Original text', translation: 'Translation',
+  translationAppearsHere: 'The translation appears here as you type or speak.',
+  translating: 'Translating…', tryAgain: 'Try again',
+  listen: 'Listen', listenSource: 'Listen to the original', copy: 'Copy', share: 'Share', paste: 'Paste',
+  favourite: 'Favourite', unfavourite: 'Remove from favourites', showLarge: 'Show large', tapToClose: 'Tap anywhere to close',
+  copied: 'Copied', copyFailed: 'Could not copy.', pasteFailed: 'Could not paste: allow clipboard access.',
+  addedFavourite: 'Added to favourites', removedFavourite: 'Removed from favourites',
+  nothingToSave: 'No translation to save yet.', historyOff: 'History is turned off in Settings.',
+  swapNeedsLanguage: 'The source language has not been detected yet.',
+  tapToSpeak: 'Tap to speak', listeningIn: 'Listening ({lang})… tap to stop',
+  spokenLanguage: 'The language you speak', pickSpokenLanguage: 'First choose the language you speak.',
+  speakNeedsLanguage: 'Choose the source language first to listen.',
+  speakUnsupported: 'This browser cannot read text aloud.',
+  speakFailed: 'No {lang} voice on this device.',
+  micUnsupported: 'Speech recognition is not available in this browser. Tap the microphone on the keyboard to dictate; the translation still follows live.',
+
+  mic_denied: 'Microphone access was denied. iPhone: Settings › Safari › Microphone › Allow, then try again.',
+  mic_nosiri: 'Speech recognition is turned off. iPhone: turn on Settings › Siri › "Siri & Dictation" (or Keyboard › Enable Dictation).',
+  mic_nomic: 'No microphone found, or another app is using it.',
+  mic_lang: 'Speech recognition does not support this language on this device yet. Try typing or keyboard dictation.',
+  mic_network: 'Speech recognition needs the internet. Check your connection.',
+  mic_nospeech: 'No speech was heard.',
+  mic_unsupported: 'Speech recognition is not available in this browser.',
+  mic_failed: 'Speech recognition failed. Try again.',
+
+  err_offline: 'You are offline. New translations need the internet.',
+  err_network: 'Could not reach the translation service.',
+  err_quota: 'The translation service\'s daily limit has been used up.',
+  err_lang: 'This service does not support this language pair.',
+  err_server: 'The translation service is having problems. Try again shortly.',
+  err_aborted: 'Cancelled.',
+  errQuotaMyMemory: 'Today\'s free MyMemory limit (5,000 characters) is used up. Add an e-mail in Settings for 50,000 characters, or use a Google/Microsoft key.',
+  errNoKey: 'Enter your {service} API key in Settings.',
+  errAuth: 'The {service} API key was rejected. Check the key (and region) in Settings.',
+
+  faceToFace: 'Face to face', swapLanguages: 'Swap languages', typeInstead: 'Type', autoSpeak: 'Read translations aloud automatically',
+  clearConversation: 'Clear conversation', clearConversationQ: 'Delete every message in this conversation?',
+  yourLanguage: 'Your language', theirLanguage: 'Their language',
+  speakIn: 'Speak in {lang}', typeIn: 'Type in {lang}',
+  convEmptyA: 'Tap the microphone and speak in {lang}.', convEmptyB: 'Tap the microphone and speak in {lang}.',
+
+  searchHistory: 'Search history', favourites: 'Favourites', clearHistory: 'Clear history',
+  clearHistoryQ: 'Delete all history? Favourites are kept.', historyCleared: 'History cleared',
+  noHistory: 'No translations yet. Your translations are kept here.', noFavourites: 'No favourites yet. Tap the star on a translation.',
+  noMatches: 'Nothing matches.', openInTranslator: 'Open in the translator', historyOffNote: 'History is off: new translations are not saved.',
+
+  appearance: 'Appearance', interfaceLanguage: 'App language', theme: 'Theme', light: 'Light', dark: 'Dark',
+  translationService: 'Translation service', pMyMemory: 'MyMemory',
+  mymemoryNote: 'Free without an account: 5,000 characters a day. With your e-mail: 50,000 characters a day.',
+  mmEmail: 'E-mail (optional)',
+  googleNote: 'Best quality. Needs a Google Cloud API key with the "Cloud Translation API" enabled (500,000 characters free a month). Restrict the key to this site.',
+  microsoftNote: 'Needs an Azure "Translator" key (2 million characters free a month). Fill in the region unless your resource is "global".',
+  apiKey: 'API key', region: 'Region',
+  testService: 'Test', testing: 'Testing…', testOk: 'Works:',
+  keysStayHere: 'Keys and e-mail are stored on this device only and sent only to that service.',
+  speech: 'Speech', speechRate: 'Voice speed',
+  autoSpeakNote: 'In Conversation, each translation is read as soon as someone stops speaking.',
+  faceToFaceNote: 'The top half of the screen is upside down for the person sitting opposite.',
+  micSupport: 'Speech recognition', voiceSupport: 'Voice output',
+  historyTitle: 'History', saveHistory: 'Save history', saveHistoryNote: 'Stored on this device only.',
+  help: 'Help',
+  helpInstallTitle: 'Install on iPhone',
+  helpInstall: 'Open this site in Safari, tap the Share button, then "Add to Home Screen". The app opens full screen and its interface works without the internet.',
+  helpMicTitle: 'Microphone not working?',
+  helpMic: 'iPhone speech recognition uses Siri: turn on Settings › Siri › "Siri & Dictation", and allow the microphone for Safari. If it still fails in the Home Screen app, open the site in Safari.',
+  helpDictationTitle: 'Another way: keyboard dictation',
+  helpDictation: 'Tap the text box, then the microphone on the iPhone keyboard. Your words are typed and translated live.',
+  helpPrivacyTitle: 'Privacy',
+  helpPrivacy: 'Text you translate is sent to the translation service you chose. Your voice is turned into text by the browser (on iPhone, by Apple). History and settings never leave this device.',
+  wipeAll: 'Delete all data', wipeAllQ: 'Delete settings, API keys and history (including favourites) from this device?', wiped: 'All data deleted',
+};
+
+export const STRINGS = { ms, en };
+
+let locale = 'ms';
+
+/** 'auto' follows the device: English when the device is in English, Malay otherwise. */
+export function resolveLocale(pref, nav = typeof navigator !== 'undefined' ? navigator.language : 'ms') {
+  if (pref === 'ms' || pref === 'en') return pref;
+  return /^en\b/i.test(nav || '') ? 'en' : 'ms';
+}
+
+export function setLocale(l) { locale = l === 'en' ? 'en' : 'ms'; return locale; }
+export const uiLang = () => locale;
+
+/** The text for `key` with {placeholders} filled in; '' for an unknown key (callers may fall back). */
+export function t(key, vars) {
+  const s = STRINGS[locale][key] ?? STRINGS.ms[key] ?? '';
+  return vars ? s.replace(/\{(\w+)\}/g, (all, k) => (vars[k] != null ? String(vars[k]) : all)) : s;
+}
