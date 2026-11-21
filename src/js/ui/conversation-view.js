@@ -8,7 +8,8 @@ import { history, settings } from '../core/store.js';
 import { createLive } from '../translate/engine.js';
 import { canRecognize, createRecognizer } from '../speech/recognizer.js';
 import { canSpeak, speak, stopSpeaking, unlock } from '../speech/speaker.js';
-import { confirmSheet, langLabel, pickLanguage, speechErrorText, translateErrorText } from './common.js';
+import { confirmSheet, langLabel, pickLanguage, speechErrorText, toast, translateErrorText } from './common.js';
+import { NOISY_PAUSE_MS, bindMic, holdAvailable, markHoldBlocked, noiseMode } from './mic-control.js';
 
 const SILENCE_MS = 1800; // a pause this long ends a turn
 const MAX_MESSAGES = 60;
@@ -26,7 +27,8 @@ export function createConversationView(app, state = { messages: [] }) {
   function buildSide(side) {
     const langBtn = h('button', { type: 'button', class: 'lang-btn', 'data-role': `conv-${side}`, onClick: () => choose(side) });
     const log = h('div', { class: 'conv-log', 'aria-live': 'polite' });
-    const mic = h('button', { type: 'button', class: 'mic-btn conv-mic', 'data-side': side, 'aria-pressed': 'false', onClick: () => toggle(side) }, icon('mic'));
+    const mic = h('button', { type: 'button', class: 'mic-btn conv-mic', 'data-side': side, 'aria-pressed': 'false' }, icon('mic'));
+    const ctl = bindMic(mic, { listening: () => active?.side === side, start: () => toggle(side), stop: () => active?.rec.stop() });
     const field = h('input', {
       type: 'text', class: 'text-input conv-input', enterKeyHint: 'send', autocomplete: 'off',
       onKeydown: e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sendTyped(side); } },
@@ -40,7 +42,7 @@ export function createConversationView(app, state = { messages: [] }) {
       hint,
       typeRow,
       h('div', { class: 'conv-foot' }, mic));
-    sides[side] = { panel, langBtn, log, mic, field, typeRow, hint };
+    sides[side] = { panel, langBtn, log, mic, ctl, field, typeRow, hint };
     return panel;
   }
 
@@ -51,6 +53,8 @@ export function createConversationView(app, state = { messages: [] }) {
     settings.set('convB', a);
     renderAll();
   }, { class: 'small' });
+  const noiseBtn = iconButton('ear', t('noiseMode'), () => settings.set('noiseMode', !noiseMode()), { class: 'small' });
+  const unwatch = settings.onChange(key => { if (key === 'noiseMode' || key === '*') { renderLayout(); renderMics(); } });
   const keysBtn = iconButton('keyboard', t('typeInstead'), () => { typing = !typing; renderLayout(); }, { class: 'small' });
   const speakToggle = iconButton('speak', t('autoSpeak'), () => { settings.set('autoSpeak', !settings.get('autoSpeak')); renderLayout(); }, { class: 'small' });
   const clearBtn = iconButton('trash', t('clearConversation'), async () => {
@@ -64,7 +68,7 @@ export function createConversationView(app, state = { messages: [] }) {
 
   const el = h('section', { class: 'view view-conversation', 'data-view': 'conversation', 'aria-label': t('tabConversation') },
     buildSide('b'),
-    h('div', { class: 'conv-divider' }, faceBtn, swapBtn, keysBtn, speakToggle, clearBtn),
+    h('div', { class: 'conv-divider' }, faceBtn, swapBtn, noiseBtn, keysBtn, speakToggle, clearBtn),
     buildSide('a'));
 
   // ---- live translation of the turn in progress (one at a time: newer text replaces older). A finished message is translated
@@ -127,16 +131,24 @@ export function createConversationView(app, state = { messages: [] }) {
     const msg = newMessage(side);
     const turn = { side, msg, rec: null, silence: null };
     active = turn;
+    const ctl = sides[side].ctl;
+    const startedBy = ctl.via();
+    let heard = false;
     turn.rec = createRecognizer({
       lang: lang(msg.from)?.speech,
       continuous: true,
+      noisy: noiseMode,
+      keepAlive: () => !noiseMode() || ctl.held(),
+      onNoise: () => suggestNoiseMode(),
       onText: ({ text, final }) => {
         if (active !== turn && !final) return;
         if (msg.final) return;
+        if (text) heard = true;
         msg.src = text;
         clearTimeout(turn.silence);
         if (!final) {
-          turn.silence = setTimeout(() => turn.rec.stop(), SILENCE_MS);
+          // the turn ends at a pause; in Noisy place mode sooner (before music fills the gap), and never while the button is held
+          if (!(noiseMode() && ctl.held())) turn.silence = setTimeout(() => { if (!(noiseMode() && ctl.held())) turn.rec.stop(); }, noiseMode() ? NOISY_PAUSE_MS : SILENCE_MS);
           live.update(msg.src, msg.from, msg.to);
         } else {
           if (active === turn) active = null; // (so that the translation may be read aloud at once)
@@ -149,11 +161,22 @@ export function createConversationView(app, state = { messages: [] }) {
         if (s === 'stopped' && active === turn) { clearTimeout(turn.silence); active = null; }
         renderMics();
       },
-      onError: code => { if (code !== 'nospeech') showHint(side, speechErrorText(code)); },
+      onError: code => {
+        if (code === 'nospeech') return;
+        if (code === 'denied' && startedBy === 'press' && !heard) { markHoldBlocked(); renderMics(); showHint(side, t('holdBlocked')); return; }
+        showHint(side, speechErrorText(code));
+      },
     });
     turn.rec.start();
     renderMics();
     renderLogs();
+  }
+
+  let suggested = false;
+  function suggestNoiseMode() {
+    if (noiseMode() || suggested) return;
+    suggested = true;
+    toast(t('noiseSuggest'), { action: { label: t('turnOn'), run: () => settings.set('noiseMode', true) } });
   }
 
   function abortTurn(keep = false) {
@@ -230,12 +253,18 @@ export function createConversationView(app, state = { messages: [] }) {
       mic.classList.toggle('listening', on);
       mic.setAttribute('aria-pressed', on ? 'true' : 'false');
       mic.replaceChildren(icon(on ? 'stop' : 'mic'));
-      mic.setAttribute('aria-label', on ? t('listeningIn', { lang: langLabel(langOf(side)) }) : t('speakIn', { lang: langLabel(langOf(side)) }));
+      const hold = noiseMode() && holdAvailable();
+      mic.classList.toggle('noisy', noiseMode());
+      mic.setAttribute('aria-label', on ? t('listeningIn', { lang: langLabel(langOf(side)) })
+        : hold ? t('holdToSpeakIn', { lang: langLabel(langOf(side)) }) : t('speakIn', { lang: langLabel(langOf(side)) }));
+      mic.title = mic.getAttribute('aria-label');
     }
   }
 
   function renderLayout() {
     el.classList.toggle('face', settings.get('faceToFace'));
+    noiseBtn.classList.toggle('on', noiseMode());
+    noiseBtn.setAttribute('aria-pressed', noiseMode() ? 'true' : 'false');
     faceBtn.classList.toggle('on', settings.get('faceToFace'));
     faceBtn.setAttribute('aria-pressed', settings.get('faceToFace') ? 'true' : 'false');
     speakToggle.classList.toggle('on', settings.get('autoSpeak'));
@@ -267,7 +296,7 @@ export function createConversationView(app, state = { messages: [] }) {
     state,
     hide() { if (active) active.rec.stop(); },
     stopMic() { if (active) active.rec.stop(); },
-    destroy() { live.cancel(); if (active) abortTurn(); },
+    destroy() { live.cancel(); unwatch(); if (active) abortTurn(); },
     get debug() { return { active: active?.side ?? null, messages: state.messages.map(({ by, src, out, status, from, to }) => ({ by, src, out, status, from, to })) }; },
   };
 }

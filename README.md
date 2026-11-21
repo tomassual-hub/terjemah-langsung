@@ -33,6 +33,15 @@ Microsoft) with a cache**, so typing at the end of a paragraph only sends the se
   Settings › Siri › "Siri & Dictation" turned on and microphone permission for Safari. The app explains each error in plain words.
 - If speech recognition is not available (some Home Screen/WebView versions, other browsers), the mic button points to the
   **microphone on the keyboard** (dictation): it types into the box and the translation still follows live.
+- **Noisy place mode** ("Mod bising", for music or a crowd): the switch is next to the mic, in Conversation and in Settings.
+  - **Press & hold to talk**: the app listens only while the mic is held, so music before and after your sentence is never
+    picked up. A short tap listens for one sentence and stops at the first pause.
+  - **Filtering**: words the recogniser is unsure about (low confidence), singing ("la la la", "oh oh"), repeated choruses,
+    and markers such as "[Music]" or ♪ are dropped (`src/js/speech/speech-filter.js`).
+  - **No automatic restart** after you let go.
+  - **Suggestion**: in normal mode, music-like results prompt a suggestion to turn the mode on.
+  - **Limit**: the browser gives the app text, not audio, so it cannot separate a voice from music in the sound itself. Hold
+    the phone close to your mouth.
 - Text to speech uses `speechSynthesis` with the device's voice for that language.
 - iOS stops recognition after a pause; the app restarts it while you are still in listening mode, and keeps what it heard.
 

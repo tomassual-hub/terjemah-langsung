@@ -20,6 +20,7 @@ export const DEFAULTS = Object.freeze({
   faceToFace: true, // conversation: the other person's half is upside down, for sitting opposite each other
   autoSpeak: true, // conversation: read every translation aloud
   speechRate: 1,
+  noiseMode: false, // Noisy place mode: press & hold to talk, music-like and unsure results dropped (ui/mic-control.js, speech/speech-filter.js)
   saveHistory: true,
   recent: [], // the last languages picked, newest first
 });

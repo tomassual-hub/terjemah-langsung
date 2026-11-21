@@ -6,7 +6,9 @@
 //   - errors become one of a few codes the interface explains.
 // onText({ text, final }) fires with the full transcript of this listening session.
 
-export const SpeechRecognitionImpl = () => (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) || null;
+import { cleanTranscript, hasSoundTags, isUnsure, looksLikeNoise } from './speech-filter.js';
+
+export const SpeechRecognitionImpl =() => (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) || null;
 export const canRecognize = () => !!SpeechRecognitionImpl();
 
 /** Error codes: denied, nosiri, nomic, lang, network, nospeech, failed */
@@ -22,15 +24,29 @@ export function errorCode(e) {
   }
 }
 
-/** The transcript in a result list: final parts and the part still being heard, joined with spaces where needed. */
-export function transcriptOf(results) {
-  let finalText = '', interim = '';
+/**
+ * The transcript in a result list: final parts and the part still being heard, joined with spaces where needed.
+ * Sound markers ("[Music]", "♪") are always removed. `noisy` (Noisy place mode) also drops final parts the engine is unsure
+ * about and parts that look like music; `noise` counts the signs of music/noise either way (for suggesting the mode).
+ */
+export function transcriptOf(results, { noisy = false } = {}) {
+  let finalText = '', interim = '', dropped = 0, noise = 0;
   for (let i = 0; i < results.length; i++) {
     const r = results[i];
-    const t = r?.[0]?.transcript ?? '';
-    if (r.isFinal) finalText = joinWords(finalText, t); else interim = joinWords(interim, t);
+    const raw = r?.[0]?.transcript ?? '';
+    const t = cleanTranscript(raw);
+    if (hasSoundTags(raw)) noise++;
+    if (r.isFinal) {
+      const bad = isUnsure(r?.[0]?.confidence) || (t !== '' && looksLikeNoise(t));
+      if (bad) noise++;
+      if (noisy && (bad || !t)) { dropped++; continue; }
+      finalText = joinWords(finalText, t);
+    } else {
+      interim = joinWords(interim, t);
+    }
   }
-  return { finalText, interim, text: joinWords(finalText, interim) };
+  if (noisy && interim && looksLikeNoise(interim)) { interim = ''; dropped++; }
+  return { finalText, interim, text: joinWords(finalText, interim), dropped, noise };
 }
 
 export function joinWords(a, b) {
@@ -43,10 +59,14 @@ export function joinWords(a, b) {
 }
 
 /**
- * @param {{ lang: string, continuous?: boolean, onText: Function, onState?: Function, onError?: Function, maxSilentRestarts?: number }} o
+ * @param {{ lang: string, continuous?: boolean, onText: Function, onState?: Function, onError?: Function, maxSilentRestarts?: number,
+ *   noisy?: () => boolean, keepAlive?: () => boolean, onNoise?: Function }} o
  *   onState('listening' | 'stopped'), onError(code)
+ *   noisy: Noisy place mode is on (results are filtered, see transcriptOf)
+ *   keepAlive: whether to start again when the engine stops by itself (default: yes; in Noisy place mode only while the button is held)
+ *   onNoise(): called once per listening when what was heard looks like music or noise
  */
-export function createRecognizer({ lang, continuous = true, onText, onState = () => {}, onError = () => {}, maxSilentRestarts = 2 }) {
+export function createRecognizer({ lang, continuous = true, onText, onState = () => {}, onError = () => {}, maxSilentRestarts = 2, noisy = () => false, keepAlive = () => true, onNoise = () => {} }) {
   const Impl = SpeechRecognitionImpl();
   let rec = null;
   let wanted = false; // the user wants to listen
@@ -56,6 +76,7 @@ export function createRecognizer({ lang, continuous = true, onText, onState = ()
   let silentRestarts = 0;
   let fatal = false;
   let restartTimer = null;
+  let noiseReported = false;
 
   const full = () => joinWords(kept, current);
 
@@ -68,7 +89,8 @@ export function createRecognizer({ lang, continuous = true, onText, onState = ()
     current = '';
     heardThisSession = false;
     rec.onresult = ev => {
-      const { text } = transcriptOf(ev.results);
+      const { text, noise } = transcriptOf(ev.results, { noisy: noisy() });
+      if (noise && !noiseReported) { noiseReported = true; onNoise(); }
       if (text && text !== current) heardThisSession = true;
       current = text;
       onText({ text: full(), final: false });
@@ -84,7 +106,7 @@ export function createRecognizer({ lang, continuous = true, onText, onState = ()
       rec = null;
       kept = full();
       current = '';
-      if (wanted && !fatal && continuous) {
+      if (wanted && !fatal && continuous && keepAlive()) {
         silentRestarts = heardThisSession ? 0 : silentRestarts + 1;
         if (silentRestarts <= maxSilentRestarts) {
           restartTimer = setTimeout(() => { if (wanted) begin(); }, 150);
@@ -130,7 +152,7 @@ export function createRecognizer({ lang, continuous = true, onText, onState = ()
     start() {
       if (!Impl) { onError('unsupported'); return false; }
       if (wanted) return true;
-      wanted = true; fatal = false; kept = ''; current = ''; silentRestarts = 0; finished = false;
+      wanted = true; fatal = false; kept = ''; current = ''; silentRestarts = 0; finished = false; noiseReported = false;
       onState('listening');
       begin();
       return true;

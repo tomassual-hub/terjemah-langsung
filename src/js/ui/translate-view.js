@@ -7,6 +7,7 @@ import { createLive } from '../translate/engine.js';
 import { canRecognize, createRecognizer } from '../speech/recognizer.js';
 import { canSpeak, speak, stopSpeaking, unlock } from '../speech/speaker.js';
 import { copyText, langLabel, pickLanguage, providerName, shareText, showLarge, speechErrorText, toast, translateErrorText } from './common.js';
+import { NOISY_PAUSE_MS, bindMic, holdAvailable, markHoldBlocked, noiseMode } from './mic-control.js';
 
 const MAX_CHARS = 5000;
 const COMMIT_AFTER = 1800; // ms of quiet after a translation before it goes into the history
@@ -48,8 +49,11 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
   const outLarge = iconButton('expand', t('showLarge'), () => showLarge(out, to));
 
   const micLabel = h('span', { class: 'mic-label' });
-  const micBtn = h('button', { type: 'button', class: 'mic-btn', 'aria-pressed': 'false', onClick: () => toggleMic() }, icon('mic'));
+  const micBtn = h('button', { type: 'button', class: 'mic-btn', 'aria-pressed': 'false' }, icon('mic'));
+  const mic = bindMic(micBtn, { listening: () => !!rec, start: () => toggleMic(), stop: () => stopMic() });
   const micHint = h('p', { class: 'mic-hint', hidden: true });
+  const noiseBtn = h('button', { type: 'button', class: 'chip noise-chip', onClick: () => settings.set('noiseMode', !noiseMode()) });
+  const unwatch = settings.onChange(key => { if (key === 'noiseMode' || key === '*') renderMic(); });
 
   const el = h('section', { class: 'view view-translate', 'data-view': 'translate', 'aria-label': t('tabTranslate') },
     h('div', { class: 'lang-bar' }, fromBtn, swapBtn, toBtn),
@@ -60,7 +64,7 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
       output,
       statusLine,
       h('div', { class: 'card-foot out-actions' }, outSpeak, outCopy, outShare, outFav, outLarge)),
-    h('div', { class: 'mic-wrap' }, micBtn, micLabel, micHint));
+    h('div', { class: 'mic-wrap' }, micBtn, micLabel, noiseBtn, micHint));
 
   // ---- live translation
   const live = createLive(app.engine, {
@@ -161,6 +165,8 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
       const id = await pickLanguage({ title: t('spokenLanguage'), current: null });
       if (!id) return;
       setLangs(id, id === to ? other(id, detected) : to);
+      // pressed and held: the finger has long left the button while the list was open; press again to speak
+      if (noiseMode() && mic.via() === 'press') { toast(t('pressAgain')); return; }
     }
     stopSpeaking();
     app.stopOtherMics('translate');
@@ -171,19 +177,34 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
     state.text = '';
     mode = 'speech';
     onTextChanged();
+    const startedBy = mic.via();
+    let heard = false;
     rec = createRecognizer({
       lang: micTag(),
       continuous: true,
+      noisy: noiseMode,
+      // Noisy place mode: start again after the engine's own pauses only while the button is held
+      keepAlive: () => !noiseMode() || mic.held(),
+      onNoise: () => suggestNoiseMode(),
       onText: ({ text, final }) => {
         if (!rec && !final) return;
+        if (text) heard = true;
         input.value = text.slice(0, MAX_CHARS);
         state.text = input.value;
         onTextChanged({ immediate: final });
         if (final) scheduleCommit(1200);
+        else if (noiseMode()) armPause();
       },
-      onState: s => { if (s === 'stopped') { rec = null; renderMic(); } else renderMic(); },
+      onState: s => { if (s === 'stopped') { rec = null; clearTimeout(pauseTimer); renderMic(); } else renderMic(); },
       onError: code => {
         if (code === 'nospeech') return;
+        if (code === 'denied' && startedBy === 'press' && !heard) {
+          // refused from a press (not a "user gesture" on this browser): tapping works, so the button switches to taps
+          markHoldBlocked();
+          renderMic();
+          showMicHint(t('holdBlocked'));
+          return;
+        }
         showMicHint(speechErrorText(code));
       },
     });
@@ -191,7 +212,21 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
     renderMic();
   }
 
-  function stopMic() { rec?.stop(); }
+  // Noisy place mode, after a tap (not held): one sentence, so the first pause ends it, before the music fills the gap
+  let pauseTimer = null;
+  function armPause() {
+    clearTimeout(pauseTimer);
+    pauseTimer = setTimeout(() => { if (rec && noiseMode() && !mic.held()) stopMic(); }, NOISY_PAUSE_MS);
+  }
+
+  let suggested = false;
+  function suggestNoiseMode() {
+    if (noiseMode() || suggested) return;
+    suggested = true;
+    toast(t('noiseSuggest'), { action: { label: t('turnOn'), run: () => settings.set('noiseMode', true) } });
+  }
+
+  function stopMic() { clearTimeout(pauseTimer); rec?.stop(); }
   function showMicHint(text) { micHint.textContent = text; micHint.hidden = false; }
 
   async function say(text, langId) {
@@ -286,10 +321,20 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
     micBtn.classList.toggle('listening', on);
     micBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     micBtn.replaceChildren(icon(on ? 'stop' : 'mic'));
-    const label = on ? t('listeningIn', { lang: langLabel(from) }) : t('tapToSpeak');
+    const noisy = noiseMode();
+    const hold = noisy && holdAvailable();
+    const label = on
+      ? (hold && mic.held() ? t('listeningHold', { lang: langLabel(from) }) : t('listeningIn', { lang: langLabel(from) }))
+      : hold ? t('holdToSpeak') : t('tapToSpeak');
     micBtn.setAttribute('aria-label', label);
+    micBtn.classList.toggle('noisy', noisy);
     micLabel.textContent = label;
     input.readOnly = on;
+    noiseBtn.replaceChildren(icon('ear'), t('noiseShort'));
+    noiseBtn.setAttribute('aria-label', t('noiseMode'));
+    noiseBtn.classList.toggle('on', noisy);
+    noiseBtn.setAttribute('aria-pressed', noisy ? 'true' : 'false');
+    noiseBtn.title = t('noiseModeNote');
   }
 
   input.value = state.text;
@@ -320,7 +365,7 @@ export function createTranslateView(app, state = { text: '', entryId: null, comm
     hide() { commit(); if (rec) stopMic(); },
     stopMic: () => { if (rec) stopMic(); },
     retry: () => live.retry(),
-    destroy() { live.cancel(); clearTimeout(commitTimer); if (rec) rec.abort(); },
+    destroy() { live.cancel(); clearTimeout(commitTimer); clearTimeout(pauseTimer); unwatch(); if (rec) rec.abort(); },
     get debug() { return { from, to, out, status, detected, listening: !!rec, entryId: state.entryId }; },
   };
 }

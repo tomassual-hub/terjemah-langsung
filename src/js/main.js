@@ -56,7 +56,8 @@ function build() {
   $('#net-badge').replaceChildren(icon('wifi-off'), h('span', {}, t('offline')));
   $('#view').replaceChildren(...Object.values(views).map(v => v.el));
   $('#tabs').replaceChildren(...TABS.map(tab => h('a', {
-    href: `#/${tab.id}`, class: 'tab', 'data-tab': tab.id, onClick: () => { if (tab.id === current) views[tab.id].show?.(); },
+    // switch at once (the hash follows; its hashchange then finds the screen already shown)
+    href: `#/${tab.id}`, class: 'tab', 'data-tab': tab.id, onClick: () => { if (tab.id === current) views[tab.id].show?.(); else show(tab.id); },
   }, icon(tab.icon), h('span', {}, t(tab.label)))));
   const was = current;
   current = null;

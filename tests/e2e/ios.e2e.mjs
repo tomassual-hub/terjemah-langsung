@@ -69,6 +69,22 @@ test('iPhone: conversation fills the screen, the top half is upside down, both m
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 }));
 
+test('iPhone: Noisy place mode, press & hold the mic, music left out, no callout menu or text selection on the button', T, () => open({ storage: { noiseMode: true, from: 'en', to: 'ms' } }, async page => {
+  const btn = page.locator('.view-translate .mic-btn');
+  const css = await btn.evaluate(el => { const s = getComputedStyle(el); return { select: s.webkitUserSelect || s.userSelect, touch: s.touchAction, callout: s.webkitTouchCallout }; });
+  assert.equal(css.select, 'none');
+  assert.equal(css.touch, 'none');
+  const b = await btn.boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.waitForFunction(() => window.__sr.active?.lang === 'en-US');
+  await page.evaluate(() => window.__sr.sayAll([['how much is this', true, 0.9], ['la la la la', true, 0.9]]));
+  await page.waitForTimeout(500);
+  await page.mouse.up();
+  await waitStatus(page, 'done');
+  assert.equal(await outText(page), 'ms:how much is this');
+}));
+
 test('iPhone: dark mode follows the system', T, () => open({ colorScheme: 'dark' }, async page => {
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');
   assert.equal(await page.evaluate(() => document.querySelector('meta[name="theme-color"]').content), '#0f1115');

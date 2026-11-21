@@ -89,6 +89,7 @@ export function createSettingsView(app) {
       h('h2', { class: 'group-title' }, t('speech')),
       h('div', { class: 'group' },
         h('div', { class: 'row' }, h('span', { class: 'row-text' }, h('span', {}, t('speechRate'))), rate, rateOut),
+        toggle(t('noiseMode'), 'noiseMode', null, t('noiseModeNote')),
         toggle(t('autoSpeak'), 'autoSpeak', null, t('autoSpeakNote')),
         toggle(t('faceToFace'), 'faceToFace', null, t('faceToFaceNote')),
         h('p', { class: 'note' }, `${t('micSupport')}: ${canRecognize() ? t('yes') : t('no')} · ${t('voiceSupport')}: ${canSpeak() ? t('yes') : t('no')}`)),

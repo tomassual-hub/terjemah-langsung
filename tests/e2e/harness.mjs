@@ -27,8 +27,10 @@ function pageFakes({ sr }) {
     }
     window.SpeechRecognition = undefined;
     window.webkitSpeechRecognition = FakeSpeechRecognition;
-    const results = (text, isFinal) => [Object.assign([{ transcript: text, confidence: 0.9 }], { isFinal })];
-    window.__sr.say = (text, isFinal = false) => window.__sr.active?.onresult?.({ resultIndex: 0, results: results(text, isFinal) });
+    // say(text): one result; sayAll([[text, isFinal, confidence], ...]): the whole result list, as engines send it
+    const list = items => items.map(([text, isFinal, confidence = 0.9]) => Object.assign([{ transcript: text, confidence }], { isFinal }));
+    window.__sr.say = (text, isFinal = false, confidence = 0.9) => window.__sr.active?.onresult?.({ resultIndex: 0, results: list([[text, isFinal, confidence]]) });
+    window.__sr.sayAll = items => window.__sr.active?.onresult?.({ resultIndex: 0, results: list(items) });
     window.__sr.end = () => { const a = window.__sr.active; window.__sr.active = null; a?.onend?.({}); };
     window.__sr.fail = error => { const a = window.__sr.active; window.__sr.active = null; a?.onerror?.({ error }); a?.onend?.({}); };
   } else {
