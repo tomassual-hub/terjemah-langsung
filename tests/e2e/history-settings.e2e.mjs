@@ -67,7 +67,7 @@ test('settings: switching the interface to English relabels everything and keeps
   await waitStatus(page, 'done');
   await page.locator('.tab[data-tab="settings"]').click();
   await page.locator('.segmented button[data-value="en"]').click();
-  assert.deepEqual(await page.locator('.tab span').allInnerTexts(), ['Translate', 'Conversation', 'History', 'Settings']);
+  assert.deepEqual(await page.locator('.tab span').allInnerTexts(), ['Translate', 'Interpreter', 'Conversation', 'History', 'Settings']);
   assert.equal(await page.locator('#app-title').innerText(), 'Live Translate');
   assert.equal(await page.evaluate(() => document.documentElement.lang), 'en');
   await page.locator('.tab[data-tab="translate"]').click();
@@ -87,16 +87,16 @@ test('settings: theme, service and key (test button), and the key is only ever s
   await key.fill('AIza-from-settings');
   await key.blur();
   assert.equal(await page.evaluate(() => window.__tl.settings.get('googleKey')), 'AIza-from-settings');
-  await page.locator('.btn', { hasText: 'Uji' }).click();
+  await page.locator('.btn:not([data-role])', { hasText: 'Uji' }).click();
   await page.locator('.test-out.ok').waitFor();
-  assert.match(await page.locator('.test-out').innerText(), /Berfungsi: "ms:Good morning, how are you\?"/);
+  assert.match(await page.locator('.test-out').first().innerText(), /Berfungsi: "ms:Good morning, how are you\?"/);
   assert.equal(api.google.hits[0].key, 'AIza-from-settings');
   assert.equal(api.mm.hits.length + api.ms.hits.length, 0);
 
   await page.locator('.segmented button[data-value="microsoft"]').click();
-  await page.locator('.btn', { hasText: 'Uji' }).click();
+  await page.locator('.btn:not([data-role])', { hasText: 'Uji' }).click();
   await page.locator('.test-out.bad').waitFor();
-  assert.match(await page.locator('.test-out').innerText(), /Masukkan kunci API Microsoft Translator/);
+  assert.match(await page.locator('.test-out').first().innerText(), /Masukkan kunci API Microsoft Translator/);
 }));
 
 test('settings: delete all data wipes keys and history and returns to the defaults', T, () => withApp({ hash: '#/settings', storage: { googleKey: 'secret', provider: 'google', history: HISTORY, uiLang: 'en' } }, async page => {

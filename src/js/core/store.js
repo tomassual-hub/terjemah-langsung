@@ -21,6 +21,12 @@ export const DEFAULTS = Object.freeze({
   autoSpeak: true, // conversation: read every translation aloud
   speechRate: 1,
   noiseMode: false, // Noisy place mode: press & hold to talk, music-like and unsure results dropped (ui/mic-control.js, speech/speech-filter.js)
+  interpFrom: 'en', // Interpreter: the speakers' language, or 'auto' (Azure AI Speech detects it among interpLangs)
+  interpTo: 'ms', // Interpreter: the listener's language
+  interpLangs: ['ms', 'en', 'zh'], // Interpreter, Detect automatically: the languages the speakers may use (max 10)
+  interpSpeak: false, // Interpreter: read each translation aloud (the microphone pauses meanwhile)
+  speechKey: '', // Azure AI Speech key (Interpreter, Detect automatically)
+  speechRegion: '',
   saveHistory: true,
   recent: [], // the last languages picked, newest first
 });

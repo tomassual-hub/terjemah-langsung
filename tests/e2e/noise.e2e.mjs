@@ -26,10 +26,10 @@ async function press(page, locator) {
 test('the switch: off by default, on with one tap, shown on the mic and in Settings, remembered', T, () => withApp({}, async page => {
   const chip = page.locator('.noise-chip');
   assert.equal(await chip.getAttribute('aria-pressed'), 'false');
-  assert.equal(await page.locator('.mic-label').innerText(), 'Tekan untuk bercakap');
+  assert.equal(await page.locator('.view-translate .mic-label').innerText(), 'Tekan untuk bercakap');
   await chip.click();
   assert.equal(await chip.getAttribute('aria-pressed'), 'true');
-  assert.equal(await page.locator('.mic-label').innerText(), 'Tekan & tahan semasa bercakap');
+  assert.equal(await page.locator('.view-translate .mic-label').innerText(), 'Tekan & tahan semasa bercakap');
   assert.equal(await page.evaluate(() => window.__tl.settings.get('noiseMode')), true);
   await page.locator('.tab[data-tab="settings"]').click();
   const box = page.locator('label.row', { hasText: 'Mod bising' }).locator('input');
@@ -42,7 +42,7 @@ test('the switch: off by default, on with one tap, shown on the mic and in Setti
 test('press & hold: listens while held, music and unsure words are left out, letting go ends it and translates', T, () => withApp(NOISY, async page => {
   const p = await press(page, mic(page));
   await page.waitForFunction(() => window.__sr.active?.lang === 'en-US');
-  assert.match(await page.locator('.mic-label').innerText(), /lepaskan bila habis/);
+  assert.match(await page.locator('.view-translate .mic-label').innerText(), /lepaskan bila habis/);
   await sayAll(page, [['where is the', false]]);
   await sayAll(page, [['where is the station', true, 0.91], ['la la la la', true, 0.8], ['[Music]', true, 0.7], ['mumble grumble', true, 0.2], ['oh oh oh', false]]);
   await page.waitForFunction(() => document.querySelector('.src-input').value === 'where is the station');
@@ -111,7 +111,7 @@ test('a browser that refuses to start from a press falls back to taps, with an e
   await p.release();
   await page.locator('.view-translate .mic-hint').waitFor({ state: 'visible' });
   assert.match(await page.locator('.view-translate .mic-hint').innerText(), /tidak membenarkan tekan & tahan/);
-  assert.equal(await page.locator('.mic-label').innerText(), 'Tekan untuk bercakap');
+  assert.equal(await page.locator('.view-translate .mic-label').innerText(), 'Tekan untuk bercakap');
   await mic(page).click(); // a tap now starts it
   await page.waitForFunction(() => window.__sr.active);
   await H.say(page, 'tapped');

@@ -4,7 +4,9 @@
 //   api.mymemory.translated.net          MyMemory: free, no key (the default)
 //   translation.googleapis.com           Google Cloud Translation v2: the user's own API key
 //   api.cognitive.microsofttranslator.com Microsoft Translator (Azure): the user's own key
-// All three answer CORS from the browser, so there is no proxy of ours in between and a key never passes through our server.
+//   wss://*.stt.speech.microsoft.com     Azure AI Speech (Interpreter, Detect automatically): the user's own key
+//   https://*.api.cognitive.microsoft.com Azure AI Speech: checking that key (Settings › Test)
+// All of them answer CORS from the browser, so there is no proxy of ours in between and a key never passes through our server.
 // The microphone is allowed for our own origin only: speech recognition (Web Speech API) needs it.
 //
 // Netlify's free plan injects a "Powered by Netlify" badge with one inline <script> and an inline <style>; the Netlify build
@@ -12,7 +14,10 @@
 
 export const NETLIFY_BADGE_SCRIPT_HASH = "'sha256-BkKP2XO6WOEc3kXOiLr2ZoY83hamalKjPY9xBcbXVuw='";
 
-export const API_HOSTS = ['https://api.mymemory.translated.net', 'https://translation.googleapis.com', 'https://api.cognitive.microsofttranslator.com'];
+export const API_HOSTS = [
+  'https://api.mymemory.translated.net', 'https://translation.googleapis.com', 'https://api.cognitive.microsofttranslator.com',
+  'wss://*.stt.speech.microsoft.com', 'https://*.api.cognitive.microsoft.com',
+];
 
 export function buildCsp({ netlifyBadge = false } = {}) {
   return [

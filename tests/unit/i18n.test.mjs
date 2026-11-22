@@ -27,7 +27,7 @@ test('every t("key") in the source exists, and the keys built at run time too', 
   for (const m of readFileSync(join(SRC, 'main.js'), 'utf8').matchAll(/label: '(\w+)'/g)) used.add(m[1]);
   // built from codes: translate errors (providers.js) and speech errors (recognizer.js)
   for (const c of ['offline', 'network', 'quota', 'lang', 'server', 'aborted']) used.add(`err_${c}`);
-  for (const c of ['denied', 'nosiri', 'nomic', 'lang', 'network', 'nospeech', 'unsupported', 'failed']) used.add(`mic_${c}`);
+  for (const c of ['denied', 'nosiri', 'nomic', 'lang', 'network', 'nospeech', 'unsupported', 'failed', 'azsetup', 'azauth', 'azquota', 'azlang', 'azload']) used.add(`mic_${c}`);
   assert.ok(used.size > 100, `found ${used.size} keys: is the scan still working?`);
   const missing = [...used].filter(k => !(k in STRINGS.ms));
   assert.deepEqual(missing, []);

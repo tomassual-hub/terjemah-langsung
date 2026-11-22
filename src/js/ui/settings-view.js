@@ -4,7 +4,8 @@ import { t } from '../core/i18n.js';
 import { settings, wipeAll } from '../core/store.js';
 import { canRecognize } from '../speech/recognizer.js';
 import { canSpeak } from '../speech/speaker.js';
-import { confirmSheet, toast, translateErrorText } from './common.js';
+import { validRegion } from '../speech/interpreter-sources.js';
+import { confirmSheet, speechErrorText, toast, translateErrorText } from './common.js';
 
 function segmented(name, value, options, onChange) {
   return h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': name },
@@ -29,6 +30,20 @@ function secretField(label, key, { placeholder = '', type = 'password', onSaved 
   return h('label', { class: 'field' }, h('span', { class: 'field-label' }, label), h('span', { class: 'field-row' }, input, show));
 }
 
+/** Checks an Azure AI Speech key by asking for a token with it (nothing is recognised, nothing is billed). Resolves with an error code or null. */
+export async function checkSpeechKey(key, region, fetchImpl = fetch) {
+  if (!key || !validRegion(region)) return 'azsetup';
+  try {
+    const res = await fetchImpl(`https://${region}.api.cognitive.microsoft.com/sts/v1.0/issueToken`, {
+      method: 'POST', headers: { 'Ocp-Apim-Subscription-Key': key }, signal: AbortSignal.timeout?.(15000),
+    });
+    if (res.ok) return null;
+    if (res.status === 401 || res.status === 403) return 'azauth';
+    if (res.status === 429) return 'azquota';
+    return 'failed';
+  } catch { return 'network'; }
+}
+
 export function createSettingsView(app) {
   const el = h('section', { class: 'view view-settings', 'data-view': 'settings', 'aria-label': t('tabSettings') });
 
@@ -46,6 +61,14 @@ export function createSettingsView(app) {
         testOut.className = 'test-out bad';
         testOut.textContent = translateErrorText(err);
       }
+    };
+    const speechOut = h('p', { class: 'test-out', 'aria-live': 'polite' });
+    const runSpeechTest = async () => {
+      speechOut.className = 'test-out';
+      speechOut.textContent = t('testing');
+      const code = await checkSpeechKey(settings.get('speechKey'), settings.get('speechRegion'));
+      speechOut.className = `test-out ${code ? 'bad' : 'ok'}`;
+      speechOut.textContent = code ? speechErrorText(code) : t('testSpeechOk');
     };
     const onSaved = () => app.engine.clear(); // answers of the old key/account must not be mixed in
     const providerFields = {
@@ -85,6 +108,13 @@ export function createSettingsView(app) {
         ...providerFields[provider],
         h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onClick: runTest }, t('testService')), testOut),
         h('p', { class: 'note' }, icon('info'), t('keysStayHere'))),
+
+      h('h2', { class: 'group-title' }, t('azureSpeech')),
+      h('div', { class: 'group', 'data-group': 'azure-speech' },
+        h('p', { class: 'note' }, t('azureSpeechNote')),
+        secretField(t('apiKey'), 'speechKey'),
+        secretField(t('region'), 'speechRegion', { type: 'text', placeholder: 'southeastasia', onSaved: () => settings.set('speechRegion', settings.get('speechRegion').toLowerCase().replace(/s+/g, '')) }),
+        h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', 'data-role': 'test-speech', onClick: runSpeechTest }, t('testService')), speechOut)),
 
       h('h2', { class: 'group-title' }, t('speech')),
       h('div', { class: 'group' },

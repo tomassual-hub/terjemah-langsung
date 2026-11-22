@@ -11,6 +11,17 @@ The interface is in Malay and English.
 - **Conversation**: two people, one phone. Each half has its own language and microphone. The top half is upside down for
   sitting face to face. When someone stops speaking (a 1.8 s pause), the translation is read aloud in the other language.
   Typing works too.
+- **Interpreter** ("Jurubahasa"), like the interpreters at a summit: tap the mic **once**; the app keeps listening, and every
+  sentence is translated as soon as it is finished and shown in large type, with the sentence still being spoken translated
+  live underneath. The screen stays on. Optionally each translation is read aloud (the mic pauses meanwhile, so the phone does
+  not translate its own voice). The whole session is one History entry, and it can be shared as a transcript.
+  - **Detect language automatically**: needs an **Azure AI Speech** key and region in Settings (an Azure "Speech" resource,
+    free F0 tier = 5 audio hours a month). Azure's continuous language identification listens for up to 10 chosen languages
+    at once and reports the language of each sentence, so speakers can switch languages freely. Each sentence goes into the
+    listener's language; a sentence spoken *in* the listener's language goes into the other language (two-way talk, no
+    buttons). The SDK (~400 KB) is a separate chunk, downloaded only when this mode is used, and is not precached.
+  - **Without a key**: Safari's recognizer (Siri) hears only one chosen language (the Web Speech API cannot detect the spoken
+    language); the ⇄ button swaps direction. A ~1.1 s pause ends a sentence.
 - **History**: everything that was translated, with search and favourites (favourites survive "clear"). Stored on the device only.
 - **Settings**: app language, theme, translation service and key, voice speed, auto-read, history on/off, help, delete all data.
 - Installable to the Home Screen; the interface opens without the internet (new translations need it).
@@ -70,4 +81,6 @@ npm run icons      # redraw src/icons/*.png
 ## Not verified
 
 On a real iPhone: the Siri dictation, the microphone permission prompt, actual voices, and Home Screen app behaviour.
+The Interpreter's Azure mode is tested only against a stand-in SDK (the real SDK chunk is checked to load under the CSP);
+it has never been run against the real Azure service or a real microphone.
 Test on a device before relying on it.

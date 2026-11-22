@@ -37,7 +37,7 @@ export function createHistoryView(app, state = { query: '', favOnly: false }) {
       h('button', { type: 'button', class: 'hist-open', 'aria-label': t('openInTranslator'), onClick: () => app.openInTranslator(e) },
         h('div', { class: 'hist-meta' },
           h('span', { class: 'hist-langs' }, `${fl ? langLabel(e.from) : t('autoDetect')} → ${tl ? langLabel(e.to) : e.to}`),
-          e.mode === 'speech' || e.mode === 'conversation' ? icon(e.mode === 'conversation' ? 'chat' : 'mic') : null,
+          e.mode === 'speech' || e.mode === 'conversation' || e.mode === 'interpreter' ? icon({ conversation: 'chat', interpreter: 'interpreter' }[e.mode] ?? 'mic') : null,
           h('span', { class: 'hist-time' }, fmt(e.at))),
         h('p', { class: 'hist-src', lang: fl?.speech, dir: fl?.rtl ? 'rtl' : 'auto' }, e.src),
         h('p', { class: 'hist-out', lang: tl?.speech, dir: tl?.rtl ? 'rtl' : 'auto' }, e.out)),

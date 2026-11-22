@@ -58,7 +58,7 @@ test('auto-detect: the detected language is shown, can be adopted, and swap uses
   assert.equal(api.mm.hits[0].from, 'autodetect');
   assert.equal(await page.locator('.chip.detected').innerText(), 'Dikesan: Indonesia');
   assert.match(await page.locator('.lang-btn[data-role="from"]').innerText(), /Indonesia \(Auto\)/);
-  await page.locator('.swap-btn').click();
+  await page.locator('.view-translate .swap-btn').click();
   const d = await debug(page);
   assert.equal(d.from, 'en');
   assert.equal(d.to, 'id');

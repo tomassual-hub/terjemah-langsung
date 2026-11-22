@@ -5,6 +5,7 @@ import { history, settings } from './core/store.js';
 import { createEngine } from './translate/engine.js';
 import { createTranslateView } from './ui/translate-view.js';
 import { createConversationView } from './ui/conversation-view.js';
+import { createInterpreterView } from './ui/interpreter-view.js';
 import { createHistoryView } from './ui/history-view.js';
 import { createSettingsView } from './ui/settings-view.js';
 import { toast } from './ui/common.js';
@@ -12,11 +13,12 @@ import { stopSpeaking } from './speech/speaker.js';
 
 const TABS = [
   { id: 'translate', icon: 'languages', label: 'tabTranslate' },
+  { id: 'interpreter', icon: 'interpreter', label: 'tabInterpreter' },
   { id: 'conversation', icon: 'chat', label: 'tabConversation' },
   { id: 'history', icon: 'history', label: 'tabHistory' },
   { id: 'settings', icon: 'settings', label: 'tabSettings' },
 ];
-const FACTORIES = { translate: createTranslateView, conversation: createConversationView, history: createHistoryView, settings: createSettingsView };
+const FACTORIES = { translate: createTranslateView, interpreter: createInterpreterView, conversation: createConversationView, history: createHistoryView, settings: createSettingsView };
 
 const engine = createEngine({ getSettings: () => settings.all() });
 const states = {}; // what each screen keeps across a rebuild (text being translated, the conversation, the history search)
@@ -31,6 +33,7 @@ const app = {
     navigate('translate');
     views.translate.load(entry);
   },
+  navigate: id => navigate(id),
   /** The interface language changed (or everything was reset): build the screens again, keeping what is on them. */
   relocalize() { build(); applyTheme(); },
   applyTheme,

@@ -24,6 +24,7 @@ import iconExpand from 'lucide-static/icons/maximize-2.svg';
 import iconRotate from 'lucide-static/icons/rotate-cw.svg';
 import iconInfo from 'lucide-static/icons/info.svg';
 import iconEar from 'lucide-static/icons/ear.svg';
+import iconInterpreter from 'lucide-static/icons/audio-lines.svg';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -31,7 +32,7 @@ const ICONS = {
   mic: iconMic, 'mic-off': iconMicOff, swap: iconSwap, copy: iconCopy, speak: iconSpeak, share: iconShare, star: iconStar,
   trash: iconTrash, x: iconX, settings: iconSettings, history: iconHistory, chat: iconChat, languages: iconLanguages, stop: iconStop,
   search: iconSearch, check: iconCheck, 'wifi-off': iconWifiOff, keyboard: iconKeyboard, paste: iconPaste, chevron: iconChevron,
-  expand: iconExpand, rotate: iconRotate, info: iconInfo, ear: iconEar,
+  expand: iconExpand, rotate: iconRotate, info: iconInfo, ear: iconEar, interpreter: iconInterpreter,
 };
 const SHAPE_TAGS = new Set(['path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse']);
 const shapeCache = new Map();

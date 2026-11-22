@@ -128,12 +128,13 @@ export function createHarness(browserType, { benign = [], launchOptions = {} } =
    * storage: settings to start with (keys of src/js/core/store.js DEFAULTS, or 'history')
    * sr: whether the browser "has" speech recognition
    */
-  async function withApp({ device = PHONE, hash = '#/translate', storage = {}, sr = true, serviceWorkers = 'block', colorScheme = 'light', locale = 'ms-MY', allowErrors = [] } = {}, fn) {
+  async function withApp({ device = PHONE, hash = '#/translate', storage = {}, sr = true, serviceWorkers = 'block', colorScheme = 'light', locale = 'ms-MY', allowErrors = [], init = null } = {}, fn) {
     reset();
     const ctx = await browser.newContext({ ...device, locale, colorScheme, serviceWorkers });
     const unexpected = [], problems = [];
     await mockServices(ctx, unexpected);
     await ctx.addInitScript(pageFakes, { sr });
+    if (init) await ctx.addInitScript(init); // a test's own stand-ins (e.g. the Speech SDK: window.__tlSpeechSdk)
     await ctx.addInitScript(entries => {
       if (sessionStorage.getItem('seeded')) return;
       for (const [k, v] of Object.entries(entries)) localStorage.setItem(`tl.${k}`, JSON.stringify(v));

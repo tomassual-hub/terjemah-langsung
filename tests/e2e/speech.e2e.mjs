@@ -18,7 +18,7 @@ test('speak: live transcript and live translation, then stop; the result is kept
   assert.equal(await page.evaluate(() => window.__sr.active?.lang), 'ms-MY');
   assert.equal(await page.evaluate(() => window.__sr.active?.continuous), true);
   assert.equal(await mic(page).getAttribute('aria-pressed'), 'true');
-  assert.match(await page.locator('.mic-label').innerText(), /Mendengar \(Bahasa Melayu\)/);
+  assert.match(await page.locator('.view-translate .mic-label').innerText(), /Mendengar \(Bahasa Melayu\)/);
   assert.equal(await page.locator('.src-input').evaluate(el => el.readOnly), true, 'no typing while listening');
 
   await say(page, 'selamat');
